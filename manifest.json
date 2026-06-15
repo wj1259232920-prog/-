@@ -1,0 +1,17 @@
+{
+    "name": "入党积极分子题库",
+    "short_name": "积极分子题库",
+    "description": "第44期入党积极分子测试题库练习APP",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#f0f2f5",
+    "theme_color": "#C41E3A",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23C41E3A' width='100' height='100' rx='20'/><text x='50' y='65' text-anchor='middle' font-size='50' fill='white' font-family='sans-serif'>📋</text></svg>",
+            "sizes": "100x100",
+            "type": "image/svg+xml"
+        }
+    ]
+}
