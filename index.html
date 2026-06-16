@@ -1096,8 +1096,39 @@ function toast(msg) {
 function init() {
     updateWrongDot();
     navigateTo('home');
+
+    // 全局错误兜底：不至于整个页面卡死
+    window.onerror = function(msg, url, line) {
+        var m = document.getElementById('mainContent');
+        if (m) {
+            m.innerHTML = '<div style="text-align:center;padding:60px 20px"><p style="font-size:48px">&#x1F914;</p><p style="color:#999;margin:16px 0;font-size:15px">页面出了点小问题</p><button class="submit-btn" onclick="location.reload()" style="width:auto;display:inline-block;padding:12px 40px">刷新页面</button><p style="font-size:12px;color:#ccc;margin-top:16px">如果问题持续，请在浏览器中清除本站缓存后重试</p></div>';
+        }
+        return true;
+    };
+
+    // Service Worker 注册 + 自动更新检测
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').catch(function() {});
+        navigator.serviceWorker.register('sw.js').then(function(reg) {
+            // 检测到新 SW 版本时提示用户更新
+            reg.addEventListener('updatefound', function() {
+                var newWorker = reg.installing;
+                if (!newWorker) return;
+                newWorker.addEventListener('statechange', function() {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        // 用户正在使用旧版本，提示更新
+                        if (confirm('发现新版本，是否立即更新？点击确定刷新页面。')) {
+                            newWorker.postMessage({type: 'SKIP_WAITING'});
+                        }
+                    }
+                });
+            });
+        }).catch(function() {});
+
+        // SW 接管后自动刷新
+        var refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', function() {
+            if (!refreshing) { refreshing = true; window.location.reload(); }
+        });
     }
 }
 document.addEventListener('DOMContentLoaded', init);
