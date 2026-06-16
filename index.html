@@ -1028,12 +1028,22 @@ function renderWrongList(m) {
     function renderSection(list, type, title, pool) {
         if (list.length === 0) return '';
         var items = '';
+        var found = 0;
+        var orphans = [];
         list.forEach(function(w) {
-            var q = pool.find(function(qq) { return qq.id === w.id; });
-            if (!q) return;
+            var q = pool.find(function(qq) { return qq.id == w.id; });
+            if (!q) { orphans.push(w.id); return; }
+            found++;
             items += '<div class="wrong-item" style="cursor:pointer" onclick="startWrongType(\'' + type + '\')"><span class="q-preview">' + q.question + '</span><button class="wrong-action-btn" style="flex:none;width:auto;padding:6px 12px;font-size:11px" onclick="event.stopPropagation();removeWrongById(' + q.id + ',\'' + type + '\')">移除</button></div>';
         });
-        return '<div class="wrong-type-title">' + title + ' (' + list.length + '题)</div>' + items;
+        // Auto-clean orphaned wrong records
+        if (orphans.length > 0) {
+            var cleaned = getWrong().filter(function(w) {
+                return !(w.type === type && orphans.indexOf(w.id) >= 0);
+            });
+            saveWrong(cleaned);
+        }
+        return '<div class="wrong-type-title">' + title + ' (' + found + '题)</div>' + items;
     }
 
     var sw = wl.filter(function(w) { return w.type === 'single'; });
@@ -1067,7 +1077,7 @@ function startWrongPractice(type) {
     var qs = [];
     wl.forEach(function(w) {
         var pool = w.type === 'single' ? QUESTION_DATA.single : w.type === 'multi' ? QUESTION_DATA.multi : QUESTION_DATA.judge;
-        var q = pool.find(function(qq) { return qq.id === w.id; });
+        var q = pool.find(function(qq) { return qq.id == w.id; });
         if (q) {
             if (w.type === 'judge') qs.push({question:q.question, answer:q.answer, id:q.id, type:'judge'});
             else qs.push({question:q.question, answer:q.answer, options:q.options, id:q.id, type:w.type});
